@@ -51,23 +51,6 @@ func main() {
 		infoLog:  infoLog,
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.showSnippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
-
-	// Инициализируем FileServer, он будет обрабатывать
-	// HTTP-запросы к статическим файлам из папки "./ui/static".
-	// Обратите внимание, что переданный в функцию http.Dir путь
-	// является относительным корневой папке проекта
-	fileServer := http.FileServer(neuteredFileSystem{http.Dir("./static")})
-	mux.Handle("/static", http.NotFoundHandler())
-
-	// Используем функцию mux.Handle() для регистрации обработчика для
-	// всех запросов, которые начинаются с "/static/". Мы убираем
-	// префикс "/static" перед тем как запрос достигнет http.FileServer
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
 	// Инициализируем новую структуру http.Server. Мы устанавливаем поля Addr и Handler, так
 	// что сервер использует тот же сетевой адрес и маршруты, что и раньше, и назначаем
 	// поле ErrorLog, чтобы сервер использовал наш логгер
@@ -76,7 +59,7 @@ func main() {
 	srv := &http.Server{
 		Addr:     *addr,
 		ErrorLog: errorLog,
-		Handler:  mux,
+		Handler:  app.routes(),
 	}
 
 	// Значение, возвращаемое функцией flag.String(), является указателем на значение
