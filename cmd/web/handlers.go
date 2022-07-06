@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"html/template"
+
 	"net/http"
 	"strconv"
+
+	"tutorial-go.com/phonebook/pkg/models"
 )
 
 // Обработчик главной странице.
@@ -16,48 +19,58 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
-
-	ts, err := template.ParseFiles(files...)
+	s, err := app.numbers.Latest()
 	if err != nil {
-		// Поскольку обработчик home теперь является методом структуры application
-		// он может получить доступ к логгерам из структуры.
-		// Используем их вместо стандартного логгера от Go.
 		app.serverError(w, err)
 		return
 	}
 
-	err = ts.Execute(w, nil)
-	if err != nil {
-		// Обновляем код для использования логгера-ошибок
-		// из структуры application.
-		app.serverError(w, err)
-	}
+	app.render(w, r, "home.page.tmpl", &templateData{
+		Numbers: s,
+	})
 }
 
 // Обработчик для отображения содержимого заметки.
-func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) showNumber(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
 	}
 
-	fmt.Fprintf(w, "Отображение выбранной заметки с ID %d...", id)
-}
-
-// Обработчик для создания новой заметки.
-func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", http.MethodPost)
-
-		http.Error(w, "Метод запрещен!", 405)
+	s, err := app.numbers.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, err)
+		}
 		return
 	}
 
-	w.Write([]byte("Создание новой заметки..."))
+	app.render(w, r, "show.page.tmpl", &templateData{
+		Number: s,
+	})
+}
+
+// Обработчик для создания новой заметки.
+func (app *application) createNumber(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+
+		app.clientError(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	name := "Настя"
+	phone := "89992221234"
+
+	id, err := app.numbers.Insert(name, phone)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/number?id=%d", id), http.StatusSeeOther)
+
 }

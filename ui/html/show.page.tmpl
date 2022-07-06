@@ -1,0 +1,18 @@
+{{template "base" .}}
+
+{{define "title"}}Запись  #{{.Number.ID}}{{end}}
+
+{{define "main"}}
+    {{with .Number}}
+    <div class='snippet'>
+        <div class='metadata'>
+            <strong>{{.Name}}</strong>
+            <span>#{{.ID}}</span>
+        </div>
+        <pre><code>{{.Phone}}</code></pre>
+        <div class='metadata'>
+            <time>Запись от: {{.Created}}</time>
+        </div>
+    </div>
+    {{end}}
+{{end}}

@@ -6,6 +6,19 @@ import (
 	"runtime/debug"
 )
 
+func (app *application) render(w http.ResponseWriter, r *http.Request, name string, td *templateData) {
+	ts, ok := app.templateCache[name]
+	if !ok {
+		app.serverError(w, fmt.Errorf("Шаблон %s не существует!", name))
+		return
+	}
+
+	err := ts.Execute(w, td)
+	if err != nil {
+		app.serverError(w, err)
+	}
+}
+
 // Помощник serverError записывает сообщение об ошибке в errorLog и
 // затем отправляет пользователю ответ 500 "Внутренняя ошибка сервера
 func (app *application) serverError(w http.ResponseWriter, err error) {

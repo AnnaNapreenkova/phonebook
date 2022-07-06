@@ -1,60 +1,55 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"tutorial-go.com/phonebook/pkg/models/mysql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-// Создаем структуру `application` для хранения зависимостей всего веб-приложения.
-// Пока, что мы добавим поля только для двух логгеров, но
-// мы будем расширять данную структуру по мере усложнения приложения.
-
+// Добавляем поле snippets в структуру application. Это позволит
+// сделать объект SnippetModel доступным для наших обработчиков.
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	numbers       *mysql.NumberModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
-	// Создаем новый флаг командной строки, значение по умолчанию: ":4000".
-	// Добавляем небольшую справку, объясняющая, что содержит данный флаг.
-	// Значение флага будет сохранено в переменной addr.
-	addr := flag.String("addr", ":4000", "Сетевой адрес HTTP")
-
-	// Мы вызываем функцию flag.Parse() для извлечения флага из командной строки.
-	// Она считывает значение флага из командной строки и присваивает его содержимое
-	// переменной. Вам нужно вызвать ее *до* использования переменной addr
-	// иначе она всегда будет содержать значение по умолчанию ":4000".
-	// Если есть ошибки во время извлечения данных - приложение будет остановлено.
+	addr := flag.String("addr", ":4000", "Сетевой адрес веб-сервера")
+	dsn := flag.String("dsn", "web:pass@/phonebook?parseTime=true", "Название MySQL источника данных")
 	flag.Parse()
 
-	//логирование
-	// Используйте log.New() для создания логгера для записи информационных сообщений. Для этого нужно
-	// три параметра: место назначения для записи логов (os.Stdout), строка
-	// с префиксом сообщения (INFO или ERROR) и флаги, указывающие, какая
-	// дополнительная информация будет добавлена. Обратите внимание, что флаги
-	// соединяются с помощью оператора OR |.
-
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime|log.Lshortfile)
-
-	// Создаем логгер для записи сообщений об ошибках таким же образом, но используем stderr как
-	// место для записи и используем флаг log.Lshortfile для включения в лог
-	// названия файла и номера строки где обнаружилась ошибка.
-
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	// Инициализируем новую структуру с зависимостями приложения.
-	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
+	db, err := openDB(*dsn)
+	if err != nil {
+		errorLog.Fatal(err)
 	}
 
-	// Инициализируем новую структуру http.Server. Мы устанавливаем поля Addr и Handler, так
-	// что сервер использует тот же сетевой адрес и маршруты, что и раньше, и назначаем
-	// поле ErrorLog, чтобы сервер использовал наш логгер
-	// при возникновении проблем.
+	defer db.Close()
+
+	templateCache, err := newTemplateCache("./ui/html/")
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	// Инициализируем экземпляр mysql.SnippetModel и добавляем его в зависимостях.
+	app := &application{
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		numbers:       &mysql.NumberModel{DB: db},
+		templateCache: templateCache,
+	}
 
 	srv := &http.Server{
 		Addr:     *addr,
@@ -62,14 +57,20 @@ func main() {
 		Handler:  app.routes(),
 	}
 
-	// Значение, возвращаемое функцией flag.String(), является указателем на значение
-	// из флага, а не самим значением. Нам нужно убрать ссылку на указатель
-	// то есть перед использованием добавьте к нему префикс *. Обратите внимание, что мы используем
-	// функцию log.Printf() для записи логов в журнал работы нашего приложения.
-
-	infoLog.Printf("Запуск сервера на %s", *addr)
-	err := srv.ListenAndServe()
+	infoLog.Printf("Запуск сервера на http://127.0.0.1%s", *addr)
+	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
+}
+
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
 
 type neuteredFileSystem struct {
