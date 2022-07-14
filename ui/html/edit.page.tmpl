@@ -1,0 +1,22 @@
+{{template "base" .}}
+
+{{define "title"}}Редактировать{{end}}
+
+{{define "main"}}
+    <h2>Редактирование записи #{{.Number.ID}}</h2>
+    {{with .Number}}
+    <div class='phonebook'>        
+        <form action="/confirmEdit?id={{.ID}}" method="POST"> 
+            <input type="hidden" name="id" value="{{.ID}}" />           
+            <label>Имя</label><br>
+            <input type="text" name="name" value="{{.Name}}" /><br><br>
+            <label>Телефон</label><br>
+            <input type="text" name="phone" value="{{.Phone}}" /><br><br>
+            <input type="submit" value="Подтвердить" />
+        </form>
+        <div class='metadata'>
+            <time>Запись от: {{.Created}}</time>
+        </div>
+    </div>     
+    {{end}}
+{{end}}

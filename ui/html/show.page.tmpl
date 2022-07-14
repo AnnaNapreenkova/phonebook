@@ -4,7 +4,7 @@
 
 {{define "main"}}
     {{with .Number}}
-    <div class='snippet'>
+    <div class='phonebook'>
         <div class='metadata'>
             <strong>{{.Name}}</strong>
             <span>#{{.ID}}</span>
@@ -13,6 +13,8 @@
         <div class='metadata'>
             <time>Запись от: {{.Created}}</time>
         </div>
-    </div>
+    </div>   
+    <td><a href="/edit?id={{.ID}}">Редактировать</a></td>  
+    <td><a href="/delete?id={{.ID}}">Удалить</a></td>    
     {{end}}
 {{end}}

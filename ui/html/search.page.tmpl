@@ -1,14 +1,10 @@
 {{template "base" .}}
  
-{{define "title"}}Домашняя страница{{end}}
+{{define "title"}}Результаты поиска{{end}}
  
 {{define "main"}}
-    <h2>Телефонная книга</h2>
-    {{if .Numbers}}
-    <form action="/search" method="POST">
-        <th><input type="text" placeholder="Поиск..." name="search" /> </th>                
-        <th><input type="submit" value="Поиск" /> </th>
-    </form>
+    <h2>Результаты поиска</h2>
+    {{if .Numbers}}    
      <table>
         <tr>
             <th>Имя</th>
@@ -24,6 +20,6 @@
         {{end}}
     </table> 
     {{else}}
-        <p>Здесь ничего нет... пока что!</p>
+        <p>Ничего не удалось найти!</p>
     {{end}}
 {{end}}

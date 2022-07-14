@@ -1,0 +1,16 @@
+{{template "base" .}}
+
+{{define "title"}}Добавить{{end}}
+
+{{define "main"}}
+    <h2>Добавление записи</h2>
+    <div class='phonebook'>        
+        <form action="/number/create" method="POST">                     
+            <label>Имя</label><br>
+            <input type="text" name="name" /><br><br>
+            <label>Телефон</label><br>
+            <input type="text" name="phone" /><br><br>
+            <input type="submit" value="Добавить" />
+        </form>       
+    </div>     
+{{end}}
