@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"tutorial-go.com/phonebook/pkg/models/mysql"
+	"github.com/AnnaNapreenkova/phonebook/pkg/models/mysql"
 
 	_ "github.com/go-sql-driver/mysql"
 )

@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"path/filepath"
 
-	"tutorial-go.com/phonebook/pkg/models"
+	"github.com/AnnaNapreenkova/phonebook/pkg/models"
 )
 
 type templateData struct {

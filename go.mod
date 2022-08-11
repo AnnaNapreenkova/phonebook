@@ -1,4 +1,4 @@
-module tutorial-go.com/phonebook
+module github.com/AnnaNapreenkova/phonebook
 
 go 1.18
 

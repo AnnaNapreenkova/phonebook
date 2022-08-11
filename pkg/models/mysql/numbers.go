@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"tutorial-go.com/phonebook/pkg/models"
+	"github.com/AnnaNapreenkova/phonebook/pkg/models"
 )
 
 type NumberModel struct {

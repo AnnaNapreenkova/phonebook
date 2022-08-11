@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"tutorial-go.com/phonebook/pkg/models"
+	"github.com/AnnaNapreenkova/phonebook/pkg/models"
 )
 
 // Обработчик главной странице.
